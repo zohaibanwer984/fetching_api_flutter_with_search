@@ -12,7 +12,10 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final GlobalKey<ScaffoldMessengerState> _messengerKey =
+      GlobalKey<ScaffoldMessengerState>();
   List<dynamic> _userIds = [];
+  String _searchText = '';
 
   Future<void> getUserIds() async {
     try {
@@ -21,7 +24,11 @@ class _MyAppState extends State<MyApp> {
         _userIds = data;
       });
     } catch (e) {
-      print(e);
+      _messengerKey.currentState?.showSnackBar(
+        const SnackBar(
+          content: Text(""),
+        ),
+      );
     }
   }
 
@@ -34,24 +41,48 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      scaffoldMessengerKey: _messengerKey,
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
           centerTitle: true,
           title: const Text("USER PROFILES"),
         ),
-        body: (_userIds.isNotEmpty)
-            ? ListView.builder(
-                itemCount: _userIds.length,
-                itemBuilder: (context, index) {
-                  final user = _userIds[index];
-                  return ProfileCard(user: user);
+        body: Padding(
+          padding: const EdgeInsets.only(left: 15, right: 15),
+          child: Column(
+            children: [
+              SearchBar(
+                leading: const Icon(Icons.search),
+                onChanged: (text) {
+                  setState(() {
+                    _searchText = text;
+                  });
                 },
-              )
-            : const Center(
-                child: CircularProgressIndicator(),
               ),
+              (_userIds.isNotEmpty)
+                  ? Expanded(
+                      child: ListView.builder(
+                        itemCount: _applyFilter().length,
+                        itemBuilder: (context, index) {
+                          final user = _applyFilter()[index];
+                          return ProfileCard(user: user);
+                        },
+                      ),
+                    )
+                  : const Center(
+                      child: CircularProgressIndicator(),
+                    )
+            ],
+          ),
+        ),
       ),
     );
+  }
+
+  _applyFilter() {
+    return _userIds.where((user) {
+      return user['name'].toLowerCase().contains(_searchText.toLowerCase());
+    }).toList();
   }
 }

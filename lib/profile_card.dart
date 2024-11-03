@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class ProfileCard extends StatelessWidget {
   final dynamic user;
 
-  ProfileCard({super.key, required this.user});
+  const ProfileCard({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
